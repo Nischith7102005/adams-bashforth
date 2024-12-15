@@ -1,0 +1,80 @@
+#include <stdio.h>
+#include <math.h>
+
+// Function prototypes for the differential equations
+double f1(double x, double y);
+double f2(double x, double y);
+double f3(double x, double y);
+double f4(double x, double y);
+double f5(double x, double y);
+
+// Function to perform the Runge-Kutta method
+double runge_kutta(double (*f)(double, double), double x0, double y0, double h) {
+    double k1, k2, k3, k4;
+    k1 = h * f(x0, y0);
+    k2 = h * f(x0 + h / 2, y0 + k1 / 2);
+    k3 = h * f(x0 + h / 2, y0 + k2 / 2);
+    k4 = h * f(x0 + h, y0 + k3);
+    return y0 + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+}
+
+// Adams-Bashforth method
+void adams_bashforth(double (*f)(double, double), double x0, double y0, double h, int steps) {
+    double y[2]; // Store the last two values of y
+    double x = x0;
+
+    // Use Runge-Kutta to get the first two values
+    y[0] = runge_kutta(f, x, y0, h);
+    y[1] = runge_kutta(f, x + h, y[0], h);
+
+    printf("x: %.2f, y: %.5f\n", x, y[0]);
+    printf("x: %.2f, y: %.5f\n", x + h, y[1]);
+
+    // Adams-Bashforth 2-step method
+    for (int i = 2; i < steps; i++) {
+        double y_next = y[i - 1] + (h / 2) * (f(x + (i - 1) * h, y[i - 1]) + f(x + (i - 2) * h, y[i - 2]));
+        printf("x: %.2f, y: %.5f\n", x + i * h, y_next);
+        y[i % 2] = y_next; // Store the last two values
+    }
+}
+
+// Define the differential equations
+double f1(double x, double y) {
+    return y * (x * x + 10 * x);
+}
+
+double f2(double x, double y) {
+    return x + y * x * x;
+}
+
+double f3(double x, double y) {
+    return x * y;
+}
+
+double f4(double x, double y) {
+    return 3 * y - 12 * y * y;
+}
+
+double f5(double x, double y) {
+    return (y * x - 1) * (y * x - 1) + 2;
+}
+
+int main() {
+    double h1 = 0.2, h2 = 0.2, h3 = 0.2, h4 = 0.1, h5 = 0.1;
+    int steps1 = 5, steps2 = 5, steps3 = 5, steps4 = 10, steps5 = 10;
+
+    printf("Solution for dy/dx = y*(x^2 + 10*x), y(0) = 5:\n");
+    adams_bashforth(f1, 0, 5, h1, steps1);
+
+    printf("\nSolution for dy/dx = x + y*x^2, y(0) = 0:\n");
+    adams_bashforth(f2, 0, 0, h2, steps2);
+
+    printf("\nSolution for dy/dx = x*y, y(1) = 3:\n");
+    adams_bashforth(f3, 1, 3, h3, steps3);
+
+    printf("\nSolution for dy/dx = 3y - 12y^2, y(0) = 0:\n");
+    adams_bashforth(f4, 0, 0, h4, steps4);
+
+    printf("\nSolution for dy/dx = (y*x - 1)^2 + 2, y(0) = 1:\n");
+    adams_bashforth(f5, 0, 1, h5, steps5);
+}
